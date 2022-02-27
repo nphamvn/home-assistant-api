@@ -1,3 +1,14 @@
+## Docker
+1. Create Dockerfile
+```
+docker build -t <image_name> .
+```
+```
+docker build -t home-assistant:latest .
+```
+2. Build image
+3. Run container
+
 ## Deploy to Heroku
 1. Create Dockerfile
 1. Create a new Heroku app: nam-home-assistant
