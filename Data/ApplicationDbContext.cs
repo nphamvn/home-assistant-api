@@ -1,3 +1,4 @@
+using HomeAssistant.API.Entities;
 using HomeAssistant.API.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +15,17 @@ public class ApplicationDbContext : IdentityDbContext<AppUser, AppRole, string>
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
-    }
 
-    public DbSet<AppUser> AppUsers { get; set; }
+        builder.Entity<Message>()
+            .HasOne(m => m.Recipient)
+            .WithMany(m => m.ReceivedMessages)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Message>()
+            .HasOne(m => m.Sender)
+            .WithMany(m => m.SentMessages)
+            .OnDelete(DeleteBehavior.Restrict);
+
+    }
+    public DbSet<Message> Messages { get; set; }
 }

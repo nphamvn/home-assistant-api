@@ -42,7 +42,8 @@ public class AccountController : ControllerBase
     [HttpGet("token")]
     public async Task<ActionResult> GetUser()
     {
-        var username = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Name)?.Value;
+        //var username = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Name)?.Value;
+        var username = IdentityService.GetUsername(User);
         var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == username);
         var role = await _userManager.GetRolesAsync(user);
         //Generate Refresh Token
@@ -74,13 +75,15 @@ public class AccountController : ControllerBase
         if (!string.IsNullOrEmpty(loginRequest.Username))
         {
             //Login with Username
-            user = await _context.AppUsers.SingleOrDefaultAsync(m => m.UserName.ToUpper() == loginRequest.Username.ToUpper());
+            user = await _userManager.FindByNameAsync(loginRequest.Username);
+            //user = await _context.AppUsers.SingleOrDefaultAsync(m => m.UserName.ToUpper() == loginRequest.Username.ToUpper());
 
         }
         else if (!string.IsNullOrEmpty(loginRequest.Email))
         {
             //Login with Email
-            user = await _context.AppUsers.SingleOrDefaultAsync(m => m.Email == loginRequest.Email);
+            user = await _userManager.FindByEmailAsync(loginRequest.Email);
+            //user = await _context.AppUsers.SingleOrDefaultAsync(m => m.Email == loginRequest.Email);
         }
         else
         {

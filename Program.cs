@@ -1,13 +1,14 @@
 using HomeAssistant.Api.Middlewares;
 using HomeAssistant.API.Data;
 using HomeAssistant.API.Extentions;
+using HomeAssistant.API.Hubs;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.ConfigureServices(builder.Configuration);
-
+builder.Services.AddSignalR();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -43,5 +44,5 @@ app.UseAuthorization();
 app.UseAuthorization();
 
 app.MapControllers();
-
+app.MapHub<ChatHub>("hubs/chat");
 app.Run();
