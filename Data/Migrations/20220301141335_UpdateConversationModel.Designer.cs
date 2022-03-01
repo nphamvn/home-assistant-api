@@ -3,6 +3,7 @@ using System;
 using HomeAssistant.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HomeAssistant.API.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220301141335_UpdateConversationModel")]
+    partial class UpdateConversationModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.2");
@@ -53,6 +55,10 @@ namespace HomeAssistant.API.Data.Migrations
                     b.Property<int>("ConversationId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("RecipientId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("SenderId")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -64,6 +70,8 @@ namespace HomeAssistant.API.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ConversationId");
+
+                    b.HasIndex("RecipientId");
 
                     b.HasIndex("SenderId");
 
@@ -295,6 +303,12 @@ namespace HomeAssistant.API.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("HomeAssistant.API.Models.AppUser", "Recipient")
+                        .WithMany()
+                        .HasForeignKey("RecipientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("HomeAssistant.API.Models.AppUser", "Sender")
                         .WithMany("Messages")
                         .HasForeignKey("SenderId")
@@ -302,6 +316,8 @@ namespace HomeAssistant.API.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Conversation");
+
+                    b.Navigation("Recipient");
 
                     b.Navigation("Sender");
                 });

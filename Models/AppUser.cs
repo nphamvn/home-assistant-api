@@ -7,7 +7,6 @@ public class AppUser : IdentityUser
 {
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
-
-    public ICollection<Message> SentMessages { get; set; }
-    public ICollection<Message> ReceivedMessages { get; set; }
+    public ICollection<Conversation> Conversations { get; set; }
+    public ICollection<Message> Messages { get; set; }
 }

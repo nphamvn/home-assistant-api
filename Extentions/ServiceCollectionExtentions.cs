@@ -1,7 +1,9 @@
 using System.Text;
 using HomeAssistant.API.Data;
+using HomeAssistant.API.Entities;
 using HomeAssistant.API.Models;
 using HomeAssistant.API.Services;
+using HomeAssistant.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -93,11 +95,14 @@ public static class SeviceCollectionExtentions
 
         services.AddScoped<TokenService>();
         services.AddScoped<RefreshTokenService>();
+        services.AddTransient<IRepository<Message>, MessageRepository>();
+        services.AddTransient<IRepository<Conversation>, ConversationRepository>();
     }
     public static string CORS_POLICY_NAME = "_myAllowSpecificOrigins";
 
     public static void AddDatabase(this IServiceCollection service, IConfiguration configuration)
     {
+
         if (configuration["DatabaseProvider"] == "Sqlite")
         {
             service.AddDbContext<ApplicationDbContext>(options =>

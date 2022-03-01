@@ -16,16 +16,33 @@ public class ApplicationDbContext : IdentityDbContext<AppUser, AppRole, string>
     {
         base.OnModelCreating(builder);
 
-        builder.Entity<Message>()
-            .HasOne(m => m.Recipient)
-            .WithMany(m => m.ReceivedMessages)
-            .OnDelete(DeleteBehavior.Restrict);
+        builder.Entity<Conversation>()
+        .HasMany(c => c.Messages)
+        .WithOne(m => m.Conversation);
+
+        builder.Entity<Conversation>()
+        .HasOne(c => c.Creator)
+        .WithMany(u => u.Conversations);
+
+
+        // builder.Entity<Message>()
+        //     .HasOne(m => m.Recipient)
+        //     .WithMany(m => m.ReceivedMessages)
+        //     .OnDelete(DeleteBehavior.Restrict);
+
+        // builder.Entity<Message>()
+        //     .HasOne(m => m.Sender)
+        //     .WithMany(m => m.SentMessages)
+        //     .OnDelete(DeleteBehavior.Restrict);
 
         builder.Entity<Message>()
-            .HasOne(m => m.Sender)
-            .WithMany(m => m.SentMessages)
-            .OnDelete(DeleteBehavior.Restrict);
+            .HasOne(m => m.Conversation)
+            .WithMany(m => m.Messages);
 
+        builder.Entity<Message>()
+          .HasOne(m => m.Sender)
+          .WithMany(m => m.Messages);
     }
     public DbSet<Message> Messages { get; set; }
+    public DbSet<Conversation> Conversations { get; set; }
 }
