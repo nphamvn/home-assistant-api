@@ -1,6 +1,7 @@
 using System.Text;
 using HomeAssistant.API.Data;
 using HomeAssistant.API.Entities;
+using HomeAssistant.API.Middlewares;
 using HomeAssistant.API.Models;
 using HomeAssistant.API.Services;
 using HomeAssistant.API.Services.Interfaces;
@@ -113,5 +114,10 @@ public static class SeviceCollectionExtentions
             service.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("SqlServer")));
         }
+    }
+
+    public static void AddMiddlewares(this IServiceCollection services)
+    {
+        services.AddTransient<SampleMiddleware>();
     }
 }

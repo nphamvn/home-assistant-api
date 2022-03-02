@@ -1,4 +1,5 @@
 using HomeAssistant.API.Data;
+using HomeAssistant.API.DTOs;
 using HomeAssistant.API.Entities;
 using HomeAssistant.API.Services;
 using HomeAssistant.API.Services.Interfaces;
@@ -24,28 +25,6 @@ public class ChatController : ControllerBase
         _conversationRepository = conversationRepository;
     }
 
-    // [HttpPost]
-    // public async Task<IActionResult> CreateConversation()
-    // {
-    //     var username = IdentityService.GetUsername(User);
-    //     var creator = await _context.Users.FirstOrDefaultAsync(u => u.UserName == username);
-    //     var partner = await _context.Users.FirstOrDefaultAsync(u => u.UserName == "yenanh");
-    //     var conversation = new Conversation()
-    //     {
-    //         Name = creator.UserName + "-" + partner.UserName,
-    //         Creator = creator,
-    //         Partner = partner
-    //     };
-    //     await _conversationRepository.Create(conversation);
-    //     return Ok(new
-    //     {
-    //         id = conversation.Id,
-    //         name = conversation.Name,
-    //         creator = conversation.Creator.UserName,
-    //         partner = conversation.Partner.UserName
-    //     });
-    // }
-
     [HttpGet()]
     [Route("conversation")]
     public async Task<IActionResult> GetUserConversations()
@@ -70,12 +49,36 @@ public class ChatController : ControllerBase
     [Route("message")]
     public async Task<IActionResult> GetConversationMessages([FromQuery] int conversationId)
     {
-        var conversation = await _conversationRepository.Single(c => c.Id == conversationId, c => c.Messages);
-        var messages = conversation.Messages;
-        foreach (var message in messages)
+        var conversation = await _conversationRepository.Single(c => c.Id == conversationId);
+        var messages = await _context.Messages.Where(m => m.Conversation == conversation)
+        .Include(m => m.Sender).ToListAsync();
+        //var messages = conversation.Messages;
+        var ret = messages.Select(m => new MessageDto
         {
-            Console.WriteLine(message.Text);
-        }
-        return Ok("return messages");
+            Id = m.Id,
+            Text = m.Text,
+            SenderUsername = m.Sender.UserName,
+        }).ToList();
+        return Ok(ret);
+    }
+
+    [HttpGet]
+    [Route("contact")]
+    public async Task<IActionResult> GetContacts()
+    {
+        //var username = IdentityService.GetUsername(User);
+
+        //var conversations = await _conversationRepository.Find(c => c.Creator.UserName == username || c.Partner.UserName == username);
+        var users = await _context.Users.ToListAsync();
+        return Ok(users);
+    }
+
+    [HttpGet]
+    [Route("contact/{username}")]
+    public async Task<IActionResult> GetContact(string username)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == username);
+
+        return Ok(user);
     }
 }

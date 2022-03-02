@@ -14,13 +14,15 @@ public class ChatHub : Hub
 {
     private readonly IRepository<Conversation> _conversationRepository;
     private readonly ApplicationDbContext _context;
+    private readonly IRepository<Message> _messageRepository;
     private readonly ILogger<ChatHub> _logger;
     public ChatHub(ILogger<ChatHub> logger, IRepository<Conversation> conversationRepository,
-    ApplicationDbContext context)
+    ApplicationDbContext context, IRepository<Message> messageRepository)
     {
         _logger = logger;
         _conversationRepository = conversationRepository;
         _context = context;
+        _messageRepository = messageRepository;
     }
     public override async Task OnConnectedAsync()
     {
@@ -32,20 +34,24 @@ public class ChatHub : Hub
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
+        var username = IdentityService.GetUsername(Context.User);
+        _logger.LogInformation($"{username} disconnected");
         await base.OnDisconnectedAsync(exception);
     }
 
-    public async Task SendMessage(string? conversationId, string? partnerUsername, string message)
+    public async Task SendMessage(int? conversationId, string? partnerUsername, string message)
     {
         if (conversationId == null && partnerUsername == null)
         {
             throw new ArgumentNullException("conversationId and clientConversationId cannot be null at the same time");
         }
+
+        //Conversation does not exist, create it
+        var senderUsername = IdentityService.GetUsername(Context.User);
+
+        var sender = await _context.Users.FirstOrDefaultAsync(u => u.UserName == senderUsername);
         if (conversationId == null && partnerUsername != null)
         {
-            //Conversation does not exist, create it
-            var senderUsername = IdentityService.GetUsername(Context.User);
-            var sender = await _context.Users.FirstOrDefaultAsync(u => u.UserName == senderUsername);
             var partner = await _context.Users.FirstOrDefaultAsync(u => u.UserName == partnerUsername);
             var conversation = new Conversation()
             {
@@ -55,9 +61,17 @@ public class ChatHub : Hub
             };
 
             await _conversationRepository.Create(conversation);
-            conversationId = conversation.Id.ToString();
             _logger.LogInformation($"{senderUsername} created conversation with {partnerUsername}");
+            conversationId = conversation.Id;
         }
+        var msg = new Message()
+        {
+            ConversationId = (int)conversationId,
+            SenderId = sender.Id,
+            Text = message
+        };
+
+        await _messageRepository.Create(msg);
 
         await Clients.All.SendAsync("ReceiveMessage", conversationId, message);
     }

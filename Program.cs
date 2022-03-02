@@ -1,4 +1,4 @@
-using HomeAssistant.Api.Middlewares;
+using System.Text.Json.Serialization;
 using HomeAssistant.API.Data;
 using HomeAssistant.API.Extentions;
 using HomeAssistant.API.Hubs;

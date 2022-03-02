@@ -1,4 +1,5 @@
 using HomeAssistant.API.Data;
+using HomeAssistant.API.DTOs;
 using HomeAssistant.API.Models;
 using HomeAssistant.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace HomeAssistant.Api.Controllers;
+namespace HomeAssistant.API.Controllers;
 
 [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 [ApiController]
@@ -172,5 +173,41 @@ public class AccountController : ControllerBase
         {
             return BadRequest("Registration failed: " + result.Errors.Select(e => e.Description));
         }
+    }
+
+    [HttpGet]
+    [Route("profile")]
+    public async Task<IActionResult> GetProfile()
+    {
+        var username = IdentityService.GetUsername(User);
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == username);
+        //var role = await _userManager.GetRolesAsync(user);
+        return Ok(new
+        {
+            Username = user.UserName,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email
+            //Role = role
+        });
+    }
+
+    [HttpPost]
+    [Route("profile")]
+    public async Task<IActionResult> GetProfile([FromBody] UpdateProfileRequest request)
+    {
+        var username = IdentityService.GetUsername(User);
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == username);
+        user.FirstName = request.FirstName;
+        user.LastName = request.LastName;
+        //user.Email = request.Email;
+        await _context.SaveChangesAsync();
+        return Ok(new
+        {
+            Username = user.UserName,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email
+        });
     }
 }
