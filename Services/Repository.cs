@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HomeAssistant.API.Services;
 public class Repository<TModel> : IRepository<TModel>
-    where TModel : class, IHasId
+    where TModel : class
 {
     protected readonly ApplicationDbContext _dbContext;
     protected readonly DbSet<TModel> _dbSet;
@@ -81,24 +81,30 @@ public class Repository<TModel> : IRepository<TModel>
 
     private void InternalUpdate(TModel toUpdate)
     {
-        var trackedEntity = _dbContext.ChangeTracker.Entries<TModel>().SingleOrDefault(x => x.Entity.Id == toUpdate.Id);
-        if (trackedEntity != null)
-        {
-            trackedEntity.State = EntityState.Detached;
-        }
+        // var trackedEntity = _dbContext.ChangeTracker.Entries<TModel>().SingleOrDefault(x => x.Entity.Id == toUpdate.Id);
+        // if (trackedEntity != null)
+        // {
+        //     trackedEntity.State = EntityState.Detached;
+        // }
 
-        var entry = _dbContext.Entry(toUpdate);
-        entry.State = EntityState.Modified;
-        entry.Property("SysId").IsModified = false;
+        // var entry = _dbContext.Entry(toUpdate);
+        // entry.State = EntityState.Modified;
+        // entry.Property("SysId").IsModified = false;
+
+        _dbSet.Update(toUpdate);
+        _dbContext.SaveChanges();
     }
 
     private void InternalRemove(TModel toRemove)
     {
-        var trackedEntity = _dbContext.ChangeTracker.Entries<TModel>().SingleOrDefault(x => x.Entity.Id == toRemove.Id);
-        if (trackedEntity != null)
-        {
-            trackedEntity.State = EntityState.Detached;
-        }
-        _dbContext.Entry(toRemove).State = EntityState.Deleted;
+        // var trackedEntity = _dbContext.ChangeTracker.Entries<TModel>().SingleOrDefault(x => x.Entity.Id == toRemove.Id);
+        // if (trackedEntity != null)
+        // {
+        //     trackedEntity.State = EntityState.Detached;
+        // }
+        // _dbContext.Entry(toRemove).State = EntityState.Deleted;
+
+        _dbSet.Remove(toRemove);
+        _dbContext.SaveChanges();
     }
 }

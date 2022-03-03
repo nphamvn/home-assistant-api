@@ -1,4 +1,5 @@
 using HomeAssistant.API.Entities;
+using HomeAssistant.API.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 
 namespace HomeAssistant.API.Models;

@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 
 namespace HomeAssistant.API.Services.Interfaces;
 public interface IRepository<TModel>
-    where TModel : class, IHasId
+    where TModel : class
 {
     Task<IList<TModel>> GetAll();
 

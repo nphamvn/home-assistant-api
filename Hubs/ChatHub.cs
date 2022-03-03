@@ -1,32 +1,34 @@
 using HomeAssistant.API.Data;
-using HomeAssistant.API.Entities;
 using HomeAssistant.API.Services;
-using HomeAssistant.API.Services.Interfaces;
+using HomeAssistant.API.Services.Chat;
+using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
 
 namespace HomeAssistant.API.Hubs;
 
 [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 public class ChatHub : Hub
 {
-    private readonly IRepository<Conversation> _conversationRepository;
-    private readonly ApplicationDbContext _context;
-    private readonly IRepository<Message> _messageRepository;
+    private readonly IPublishEndpoint _publishEndpoint;
+
     private readonly ILogger<ChatHub> _logger;
-    public ChatHub(ILogger<ChatHub> logger, IRepository<Conversation> conversationRepository,
-    ApplicationDbContext context, IRepository<Message> messageRepository)
+    public ChatHub(ILogger<ChatHub> logger,
+    ApplicationDbContext context, IPublishEndpoint publishEndpoint)
     {
         _logger = logger;
-        _conversationRepository = conversationRepository;
-        _context = context;
-        _messageRepository = messageRepository;
+        _publishEndpoint = publishEndpoint;
     }
     public override async Task OnConnectedAsync()
     {
         var username = IdentityService.GetUsername(Context.User);
+        await _publishEndpoint.Publish<UserConnected>(new UserConnected()
+        {
+            Username = username,
+            ConnectionId = Context.ConnectionId
+        });
+
         _logger.LogInformation($"{username} connected");
         await Groups.AddToGroupAsync(Context.ConnectionId, username);
         await base.OnConnectedAsync();
@@ -35,6 +37,11 @@ public class ChatHub : Hub
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         var username = IdentityService.GetUsername(Context.User);
+        await _publishEndpoint.Publish<UserDisconnected>(new UserDisconnected()
+        {
+            Username = username,
+            ConnectionId = Context.ConnectionId
+        });
         _logger.LogInformation($"{username} disconnected");
         await base.OnDisconnectedAsync(exception);
     }
@@ -46,33 +53,14 @@ public class ChatHub : Hub
             throw new ArgumentNullException("conversationId and clientConversationId cannot be null at the same time");
         }
 
-        //Conversation does not exist, create it
-        var senderUsername = IdentityService.GetUsername(Context.User);
+        var senderUsername = IdentityService.GetUsername(Context.User) ?? throw new ArgumentNullException("senderUsername cannot be null");
 
-        var sender = await _context.Users.FirstOrDefaultAsync(u => u.UserName == senderUsername);
-        if (conversationId == null && partnerUsername != null)
+        await _publishEndpoint.Publish<ReceivedMessage>(new ReceivedMessage()
         {
-            var partner = await _context.Users.FirstOrDefaultAsync(u => u.UserName == partnerUsername);
-            var conversation = new Conversation()
-            {
-                Name = senderUsername + "-" + partnerUsername,
-                Creator = sender,
-                Partner = partner
-            };
-
-            await _conversationRepository.Create(conversation);
-            _logger.LogInformation($"{senderUsername} created conversation with {partnerUsername}");
-            conversationId = conversation.Id;
-        }
-        var msg = new Message()
-        {
-            ConversationId = (int)conversationId,
-            SenderId = sender.Id,
+            ConversationId = conversationId,
+            RecipientUsername = partnerUsername,
+            SenderUsername = senderUsername,
             Text = message
-        };
-
-        await _messageRepository.Create(msg);
-
-        await Clients.All.SendAsync("ReceiveMessage", conversationId, message);
+        });
     }
 }

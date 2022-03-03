@@ -4,7 +4,9 @@ using HomeAssistant.API.Entities;
 using HomeAssistant.API.Middlewares;
 using HomeAssistant.API.Models;
 using HomeAssistant.API.Services;
+using HomeAssistant.API.Services.Chat;
 using HomeAssistant.API.Services.Interfaces;
+using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -98,6 +100,29 @@ public static class SeviceCollectionExtentions
         services.AddScoped<RefreshTokenService>();
         services.AddTransient<IRepository<Message>, MessageRepository>();
         services.AddTransient<IRepository<Conversation>, ConversationRepository>();
+        services.AddTransient<IRepository<AppUser>, UserRepository>();
+
+        // Add services to the container.
+        services.AddMemoryCache();
+        services.AddSingleton<ICacheService, CacheService>();
+        services.AddSingleton<ConnectionManager>();
+        services.AddSingleton<MessageService>();
+
+        services.AddMassTransit(x =>
+        {
+            x.AddConsumer<UserConnectedEventHandler>();
+            x.AddConsumer<MessageReceivedEventHandler>();
+            x.AddConsumer<UserDisconnectedEventHandler>();
+
+            x.UsingInMemory((context, cfg) =>
+            {
+                cfg.TransportConcurrencyLimit = 100;
+                cfg.ConfigureEndpoints(context);
+            });
+
+
+        });
+        services.AddMassTransitHostedService();
     }
     public static string CORS_POLICY_NAME = "_myAllowSpecificOrigins";
 

@@ -3,7 +3,7 @@ using HomeAssistant.API.Services.Interfaces;
 
 namespace HomeAssistant.API.Entities
 {
-    public class Conversation : IHasId
+    public class Conversation
     {
         public int Id { get; set; }
         public string Name { get; set; }
