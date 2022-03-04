@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using HomeAssistant.API.Services.Interfaces;
 using Microsoft.Extensions.Caching.Distributed;
@@ -7,33 +8,41 @@ namespace HomeAssistant.API.Services.Chat;
 
 public class CacheService : ICacheService
 {
-    private readonly IMemoryCache _memoryCache;
-    public CacheService(IMemoryCache memoryCache)
+    private readonly IDistributedCache _cache;
+    public CacheService(IDistributedCache cache)
     {
-        _memoryCache = memoryCache;
+        _cache = cache;
     }
-    public Task Set<T>(string key, T value)
+    public async Task Set<T>(string key, T value)
     {
         var cacheEntryOptions = new MemoryCacheEntryOptions()
             .SetSlidingExpiration(TimeSpan.FromMinutes(30));
         var setString = JsonSerializer.Serialize(value);
-        _memoryCache.Set<string>(key, setString, cacheEntryOptions);
-        return Task.CompletedTask;
+        //_memoryCache.Set<string>(key, setString, cacheEntryOptions);
+        var bytes = Encoding.UTF8.GetBytes(setString);
+        await _cache.SetAsync(key, bytes);
+        //return Task.CompletedTask;
     }
 
-    public Task<T> Get<T>(string key)
+    public async Task<T> Get<T>(string key)
     {
-        var stringValue = _memoryCache.Get<string>(key);
-        if (stringValue == null)
+        var ret = default(T);
+        var bytes = await _cache.GetAsync(key);
+        if (bytes != null)
         {
-            return Task.FromResult<T>(default(T));
+            //return Task.FromResult<T>(default(T));
+            var stringValue = Encoding.UTF8.GetString(bytes);
+            if (string.IsNullOrEmpty(stringValue))
+            {
+                ret = JsonSerializer.Deserialize<T>(stringValue);
+            }
         }
-        var ret = JsonSerializer.Deserialize<T>(stringValue);
-        return Task.FromResult(ret);
+        return ret;
     }
 
-    public void Remove(string key)
+    public async Task Remove(string key)
     {
-        _memoryCache.Remove(key);
+        //_memoryCache.Remove(key);
+        await _cache.RemoveAsync(key);
     }
 }

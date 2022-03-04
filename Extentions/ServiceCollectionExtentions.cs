@@ -103,7 +103,8 @@ public static class SeviceCollectionExtentions
         services.AddTransient<IRepository<AppUser>, UserRepository>();
 
         // Add services to the container.
-        services.AddMemoryCache();
+        //services.AddMemoryCache();
+        services.AddDistributedMemoryCache();
         services.AddSingleton<ICacheService, CacheService>();
         services.AddSingleton<ConnectionManager>();
         services.AddSingleton<MessageService>();

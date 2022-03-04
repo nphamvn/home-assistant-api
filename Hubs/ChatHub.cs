@@ -14,8 +14,7 @@ public class ChatHub : Hub
     private readonly IPublishEndpoint _publishEndpoint;
 
     private readonly ILogger<ChatHub> _logger;
-    public ChatHub(ILogger<ChatHub> logger,
-    ApplicationDbContext context, IPublishEndpoint publishEndpoint)
+    public ChatHub(ILogger<ChatHub> logger, IPublishEndpoint publishEndpoint)
     {
         _logger = logger;
         _publishEndpoint = publishEndpoint;
@@ -29,7 +28,7 @@ public class ChatHub : Hub
             ConnectionId = Context.ConnectionId
         });
 
-        _logger.LogInformation($"{username} connected");
+        _logger.LogInformation($"{username} connected to ChatHub");
         await Groups.AddToGroupAsync(Context.ConnectionId, username);
         await base.OnConnectedAsync();
     }
@@ -42,25 +41,32 @@ public class ChatHub : Hub
             Username = username,
             ConnectionId = Context.ConnectionId
         });
-        _logger.LogInformation($"{username} disconnected");
+        _logger.LogInformation($"{username} disconnected from ChatHub");
         await base.OnDisconnectedAsync(exception);
     }
 
     public async Task SendMessage(int? conversationId, string? partnerUsername, string message)
     {
-        if (conversationId == null && partnerUsername == null)
-        {
-            throw new ArgumentNullException("conversationId and clientConversationId cannot be null at the same time");
-        }
-
         var senderUsername = IdentityService.GetUsername(Context.User) ?? throw new ArgumentNullException("senderUsername cannot be null");
-
-        await _publishEndpoint.Publish<ReceivedMessage>(new ReceivedMessage()
+        if (conversationId != null || partnerUsername != null)
         {
-            ConversationId = conversationId,
-            RecipientUsername = partnerUsername,
-            SenderUsername = senderUsername,
-            Text = message
+            await _publishEndpoint.Publish<ReceivedMessage>(new ReceivedMessage()
+            {
+                ConversationId = conversationId,
+                RecipientUsername = partnerUsername,
+                SenderUsername = senderUsername,
+                Text = message
+            });
+        }
+    }
+
+    public async Task SendMessageTyping(int conversationId)
+    {
+        var senderUsername = IdentityService.GetUsername(Context.User) ?? throw new ArgumentNullException("senderUsername cannot be null");
+        await _publishEndpoint.Publish<MessageTyping>(new MessageTyping()
+        {
+            Username = senderUsername,
+            ConversationId = conversationId
         });
     }
 }
