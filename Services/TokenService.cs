@@ -23,12 +23,13 @@ public class TokenService
     public async Task<(string Token, DateTime expiration)> GenerateToken(AppUser member)
     {
         var claims = await _userManager.GetClaimsAsync(member);
+        claims.Add(new Claim("name", member.UserName));
+
         var roles = await _userManager.GetRolesAsync(member);
         foreach (var role in roles)
         {
-            claims.Add(new Claim(ClaimTypes.Role, role));
+            claims.Add(new Claim("role", role));
         }
-        claims.Add(new Claim(ClaimTypes.Name, member.UserName));
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.Secret));
 
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

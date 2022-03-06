@@ -1,5 +1,7 @@
 using System.Text;
+using AutoMapper;
 using HomeAssistant.API.Data;
+using HomeAssistant.API.DTOs;
 using HomeAssistant.API.Entities;
 using HomeAssistant.API.Middlewares;
 using HomeAssistant.API.Models;
@@ -124,6 +126,8 @@ public static class SeviceCollectionExtentions
 
         });
         services.AddMassTransitHostedService();
+
+        services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
     }
     public static string CORS_POLICY_NAME = "_myAllowSpecificOrigins";
 

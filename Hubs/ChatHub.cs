@@ -1,4 +1,6 @@
 using HomeAssistant.API.Data;
+using HomeAssistant.API.Hubs.DTOs;
+//using HomeAssistant.API.DTOs;
 using HomeAssistant.API.Services;
 using HomeAssistant.API.Services.Chat;
 using MassTransit;
@@ -45,17 +47,33 @@ public class ChatHub : Hub
         await base.OnDisconnectedAsync(exception);
     }
 
-    public async Task SendMessage(int? conversationId, string? partnerUsername, string message)
+    // public async Task SendMessage(int? conversationId, string? partnerUsername, string message)
+    // {
+    //     var senderUsername = IdentityService.GetUsername(Context.User) ?? throw new ArgumentNullException("senderUsername cannot be null");
+    //     if (conversationId != null || partnerUsername != null)
+    //     {
+    //         await _publishEndpoint.Publish<ReceivedMessage>(new ReceivedMessage()
+    //         {
+    //             ConversationId = conversationId,
+    //             RecipientUsername = partnerUsername,
+    //             SenderUsername = senderUsername,
+    //             Text = message
+    //         });
+    //     }
+    // }
+
+    public async Task SendMessage(MessageDto message)
     {
         var senderUsername = IdentityService.GetUsername(Context.User) ?? throw new ArgumentNullException("senderUsername cannot be null");
-        if (conversationId != null || partnerUsername != null)
+        if (message.ConversationId != null || message.Username != null)
         {
             await _publishEndpoint.Publish<ReceivedMessage>(new ReceivedMessage()
             {
-                ConversationId = conversationId,
-                RecipientUsername = partnerUsername,
+                ConversationId = message.ConversationId,
+                RecipientUsername = message.Username,
                 SenderUsername = senderUsername,
-                Text = message
+                ClientId = message.ClientId,
+                Text = message.Text
             });
         }
     }

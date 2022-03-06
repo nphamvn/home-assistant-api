@@ -27,28 +27,6 @@ public class MessageController : ControllerBase
         _context = context;
     }
 
-    [HttpPost]
-    public async Task<ActionResult> CreateMessage()
-    {
-        var senderUsername = IdentityService.GetUsername(User);
-        var sender = await _context.Users.FirstOrDefaultAsync(u => u.UserName == senderUsername);
-
-        var conversations = await _conversationRepository.Find(c => c.Creator.UserName == senderUsername && c.Partner.UserName == "yenanh");
-        var conversation = conversations.FirstOrDefault();
-        var message = new Message()
-        {
-            ConversationId = conversation.Id,
-            Conversation = conversation,
-            SenderId = sender.Id,
-            Sender = sender,
-            Text = "Hello"
-        };
-
-        await _messageRepository.Create(message);
-
-        return Ok();
-    }
-
     [HttpGet("/{conversationId}")]
     public async Task<IActionResult> GetMessages(int conversationId)
     {

@@ -6,4 +6,5 @@ public class ReceivedMessage
     public string SenderUsername { get; set; }
     public string? RecipientUsername { get; set; }
     public string? Text { get; set; }
+    public string ClientId { get; set; }
 }

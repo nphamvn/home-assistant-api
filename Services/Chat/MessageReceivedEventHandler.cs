@@ -35,9 +35,14 @@ public class MessageReceivedEventHandler : IConsumer<ReceivedMessage>
             var partner = await _userRepository.Single(u => u.UserName == message.RecipientUsername);
             var conversation = new Conversation()
             {
-                Name = sender.UserName + "-" + message.RecipientUsername,
+                Description = "Conversation between " + sender.UserName + " and " + partner.UserName,
                 Creator = sender,
-                Partner = partner
+                Partner = partner,
+                ConversationNames = new List<ConversationName>()
+                {
+                    new ConversationName(){User = sender},
+                    new ConversationName(){User = partner}
+                }
             };
 
             await _conversationRepository.Create(conversation);
@@ -45,7 +50,6 @@ public class MessageReceivedEventHandler : IConsumer<ReceivedMessage>
         }
         else
         {
-
             var conversation = await _conversationRepository.Single(c => c.Id == message.ConversationId, c => c.Partner);
 
             //RecipientUsername can be Creator or Partner in Conversation

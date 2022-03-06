@@ -10,4 +10,5 @@ public class AppUser : IdentityUser
     public string? LastName { get; set; }
     public ICollection<Conversation> Conversations { get; set; }
     public ICollection<Message> Messages { get; set; }
+    public ICollection<ConversationName> ConversationNames { get; set; }
 }

@@ -24,17 +24,6 @@ public class ApplicationDbContext : IdentityDbContext<AppUser, AppRole, string>
         .HasOne(c => c.Creator)
         .WithMany(u => u.Conversations);
 
-
-        // builder.Entity<Message>()
-        //     .HasOne(m => m.Recipient)
-        //     .WithMany(m => m.ReceivedMessages)
-        //     .OnDelete(DeleteBehavior.Restrict);
-
-        // builder.Entity<Message>()
-        //     .HasOne(m => m.Sender)
-        //     .WithMany(m => m.SentMessages)
-        //     .OnDelete(DeleteBehavior.Restrict);
-
         builder.Entity<Message>()
             .HasOne(m => m.Conversation)
             .WithMany(m => m.Messages);
@@ -42,6 +31,19 @@ public class ApplicationDbContext : IdentityDbContext<AppUser, AppRole, string>
         builder.Entity<Message>()
           .HasOne(m => m.Sender)
           .WithMany(m => m.Messages);
+
+        builder.Entity<ConversationName>()
+            .HasKey(t => new { t.ConversationId, t.UserId });
+
+        builder.Entity<ConversationName>()
+            .HasOne(t => t.Conversation)
+            .WithMany(t => t.ConversationNames)
+            .HasForeignKey(t => t.ConversationId);
+
+        builder.Entity<ConversationName>()
+            .HasOne(t => t.User)
+            .WithMany(t => t.ConversationNames)
+            .HasForeignKey(t => t.UserId);
     }
     public DbSet<Message> Messages { get; set; }
     public DbSet<Conversation> Conversations { get; set; }

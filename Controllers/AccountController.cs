@@ -210,4 +210,27 @@ public class AccountController : ControllerBase
             Email = user.Email
         });
     }
+    [HttpPost]
+    [Route("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] UpdatePasswordRequest request)
+    {
+        var username = IdentityService.GetUsername(User);
+        var user = await _userManager.FindByNameAsync(username);
+        var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+        if (result.Succeeded)
+        {
+            return Ok();
+        }
+        else
+        {
+            return BadRequest(result.Errors.Select(e => e.Description));
+        }
+    }
+
+    [HttpPost]
+    [Route("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] UpdatePasswordRequest request)
+    {
+        return Ok();
+    }
 }
