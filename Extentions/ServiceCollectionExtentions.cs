@@ -1,5 +1,6 @@
 using System.Text;
 using AutoMapper;
+using grpc;
 using HomeAssistant.API.Data;
 using HomeAssistant.API.DTOs;
 using HomeAssistant.API.Entities;
@@ -128,6 +129,22 @@ public static class SeviceCollectionExtentions
         services.AddMassTransitHostedService();
 
         services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+        services.AddGrpcClient<Greeter.GreeterClient>(options =>
+        {
+            options.Address = new Uri(configuration["GRPC_SERVER_URL"]);
+        })
+        .ConfigureChannel(options =>
+        {
+            //options.Credentials = ChannelCredentials.Insecure;
+            options.HttpHandler = new HttpClientHandler
+            {
+                //ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            };
+        });
+
+        services.AddHostedService<Workers.Worker>();
     }
     public static string CORS_POLICY_NAME = "_myAllowSpecificOrigins";
 
