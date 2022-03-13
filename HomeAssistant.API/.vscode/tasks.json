@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/HomeAssistant.API.Tests/HomeAssistant.API.Tests.csproj",
+                "${workspaceFolder}/HomeAssistant.API.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -19,7 +19,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/HomeAssistant.API.Tests/HomeAssistant.API.Tests.csproj",
+                "${workspaceFolder}/HomeAssistant.API.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -33,7 +33,7 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/HomeAssistant.API.Tests/HomeAssistant.API.Tests.csproj"
+                "${workspaceFolder}/HomeAssistant.API.csproj"
             ],
             "problemMatcher": "$msCompile"
         }
