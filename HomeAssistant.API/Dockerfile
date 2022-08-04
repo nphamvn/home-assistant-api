@@ -14,5 +14,5 @@ RUN dotnet publish -c Release -o publish
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
-#ENTRYPOINT [ "dotnet","HomeAssistant.API.dll"]
-CMD ASPNETCORE_URLS=http://*:$PORT dotnet HomeAssistant.API.dll
+ENTRYPOINT [ "dotnet","HomeAssistant.API.dll"]
+# CMD ASPNETCORE_URLS=http://*:$PORT dotnet HomeAssistant.API.dll

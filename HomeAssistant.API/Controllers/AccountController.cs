@@ -20,16 +20,19 @@ public class AccountController : ControllerBase
     private readonly TokenService _tokenService;
     private readonly RefreshTokenService _refreshTokenService;
     private readonly ILogger<AccountController> _logger;
+    private readonly PhotoStorageService photoStorageService;
     private readonly UserManager<AppUser> _userManager;
     public AccountController(ApplicationDbContext context, SignInManager<AppUser> signInManager,
                             TokenService tokenService, RefreshTokenService refreshTokenService,
-                            UserManager<AppUser> userManager, ILogger<AccountController> logger)
+                            UserManager<AppUser> userManager, ILogger<AccountController> logger,
+                            PhotoStorageService photoStorageService)
     {
         _context = context;
         _signInManager = signInManager;
         _tokenService = tokenService;
         _refreshTokenService = refreshTokenService;
         _logger = logger;
+        this.photoStorageService = photoStorageService;
         _userManager = userManager;
     }
 
@@ -40,10 +43,17 @@ public class AccountController : ControllerBase
         return Ok("pong");
     }
 
+    /// <summary>
+    /// It returns a JSON object containing the user's username, first name, last name, email, role,
+    /// access token, access token expiration, and refresh token
+    /// </summary>
+    /// <returns>
+    /// The username, first name, last name, email, role, access token, access token expiration, and
+    /// refresh token.
+    /// </returns>
     [HttpGet("token")]
     public async Task<ActionResult> GetUser()
     {
-        //var username = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Name)?.Value;
         var username = IdentityService.GetUsername(User);
         var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == username);
         var role = await _userManager.GetRolesAsync(user);
@@ -59,6 +69,7 @@ public class AccountController : ControllerBase
             FirstName = user.FirstName,
             LastName = user.LastName,
             Email = user.Email,
+            PhotoUrl = user.PhotoUrl,
             Role = role,
             AccessToken = token,
             AccessTokenExpiration = expiration,
@@ -66,6 +77,13 @@ public class AccountController : ControllerBase
         });
     }
 
+    /// <summary>
+    /// The function takes in a login request, checks if the user exists, if the user exists, it signs
+    /// in the user, generates a refresh token, generates a token, and returns the token and refresh
+    /// token
+    /// </summary>
+    /// <param name="LoginRequest">This is the request object that contains the username and
+    /// password.</param>
     [AllowAnonymous]
     [HttpPost]
     [Route("login")]
@@ -187,7 +205,8 @@ public class AccountController : ControllerBase
             Username = user.UserName,
             FirstName = user.FirstName,
             LastName = user.LastName,
-            Email = user.Email
+            Email = user.Email,
+            PhotoUrl = user.PhotoUrl
             //Role = role
         });
     }
@@ -207,7 +226,8 @@ public class AccountController : ControllerBase
             Username = user.UserName,
             FirstName = user.FirstName,
             LastName = user.LastName,
-            Email = user.Email
+            Email = user.Email,
+            PhotoUrl = user.PhotoUrl
         });
     }
     [HttpPost]
@@ -232,5 +252,29 @@ public class AccountController : ControllerBase
     public async Task<IActionResult> ResetPassword([FromBody] UpdatePasswordRequest request)
     {
         return Ok();
+    }
+
+    [HttpPost]
+    [Route("profile/change-avartar")]
+    public async Task<IActionResult> UploadPhoto(IFormFile file)
+    {
+        if (file == null)
+        {
+            return BadRequest("No file");
+        }
+        var username = IdentityService.GetUsername(User);
+        var user = await _userManager.FindByNameAsync(username);
+        if (user != null)
+        {
+            var url = await photoStorageService.UploadPhoto(file.FileName, file.OpenReadStream());
+
+            user.PhotoUrl = url;
+            await _context.SaveChangesAsync();
+            return Ok(url);
+        }
+        else
+        {
+            return BadRequest("User not found");
+        }
     }
 }

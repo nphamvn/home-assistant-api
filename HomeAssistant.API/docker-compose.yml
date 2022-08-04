@@ -1,13 +1,16 @@
 version: '3.9'
 services:
-  web:
+  app:
     build: .
     ports:
-      - "8080:80"
+      - "8000:80"
     depends_on:
       - db
   db:
-    image: "mcr.microsoft.com/mssql/server"
+    image: "postgres"
+    volumes:
+      - postgres_db:/var/lib/postgresql/data
     environment:
-      SA_PASSWORD: "{{SA_PASSWORD}}"
-      ACCEPT_EULA: "Y"
+      POSTGRES_PASSWORD: "mysecretpassword"
+volumes:
+  postgres_db:

@@ -6,6 +6,7 @@ using HomeAssistant.API.DTOs;
 using HomeAssistant.API.Entities;
 using HomeAssistant.API.Middlewares;
 using HomeAssistant.API.Models;
+using HomeAssistant.API.Models.OptionModels;
 using HomeAssistant.API.Services;
 using HomeAssistant.API.Services.Chat;
 using HomeAssistant.API.Services.Interfaces;
@@ -23,19 +24,7 @@ public static class SeviceCollectionExtentions
     public static void ConfigureServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<JwtOptions>(configuration.GetSection(nameof(JwtOptions)));
-
-        //Add CORS
-        services.AddCors(options =>
-        {
-            options.AddPolicy(name: CORS_POLICY_NAME,
-            builder =>
-            {
-                builder.WithOrigins("http://localhost:4200", "https://nphamvn.github.io")
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowCredentials();
-            });
-        });
+        services.Configure<CloudinaryOptions>(configuration.GetSection(nameof(CloudinaryOptions)));
 
         //Add database
         AddDatabase(services, configuration);
@@ -104,7 +93,9 @@ public static class SeviceCollectionExtentions
         services.AddTransient<IRepository<Message>, MessageRepository>();
         services.AddTransient<IRepository<Conversation>, ConversationRepository>();
         services.AddTransient<IRepository<AppUser>, UserRepository>();
-
+        services.AddTransient<WeatherService>();
+        services.AddSingleton<LightService>();
+        services.AddTransient<PhotoStorageService>();
         // Add services to the container.
         //services.AddMemoryCache();
         services.AddDistributedMemoryCache();
@@ -145,12 +136,12 @@ public static class SeviceCollectionExtentions
         });
 
         //services.AddHostedService<Workers.Worker>();
+
     }
     public static string CORS_POLICY_NAME = "_myAllowSpecificOrigins";
 
     public static void AddDatabase(this IServiceCollection service, IConfiguration configuration)
     {
-
         if (configuration["DatabaseProvider"] == "Sqlite")
         {
             service.AddDbContext<ApplicationDbContext>(options =>
@@ -160,6 +151,12 @@ public static class SeviceCollectionExtentions
         {
             service.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("SqlServer")));
+        }
+        else if (configuration["DatabaseProvider"] == "Postgres")
+        {
+            Console.WriteLine("ConnectionString: " + configuration.GetConnectionString("Postgres"));
+            service.AddDbContext<ApplicationDbContext>(options =>
+                options.UseNpgsql(configuration.GetConnectionString("Postgres")));
         }
     }
 

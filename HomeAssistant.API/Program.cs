@@ -4,6 +4,7 @@ using HomeAssistant.API.Extentions;
 using HomeAssistant.API.Hubs;
 using Microsoft.EntityFrameworkCore;
 
+Console.WriteLine("-----CreateBuilder---- ");
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -29,13 +30,15 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure the HTTP request pipeline.
+
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseCors(SeviceCollectionExtentions.CORS_POLICY_NAME);
 
@@ -44,5 +47,5 @@ app.UseAuthorization();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapHub<ChatHub>("hubs/chat");
+app.MapHub<ChatHub>("api/hubs/chat");
 app.Run();
