@@ -1,28 +1,29 @@
-## Docker
-1. Create Dockerfile
-```
-docker build -t <image_name> .
-```
-```
-docker build -t home-assistant:latest .
-```
-2. Build image
-3. Run container
+## Description
+Home Assistant System help you and your family members control your home via web app (Angular) or mobile app (iOS and Android) (not implemented) with two main features as below: 
+- Control home devices such as Light, Air Conditioner, Camera, Weather...
+- Chat which support private chat (one-to-one) and room chat
 
-## Deploy to Heroku
-1. Create Dockerfile
-1. Create a new Heroku app: nam-home-assistant
-2. 
+## Tech Stack/ Skills
+- Backend Framework: ASP.NET Core 6 (Web API application)
+- [Frontend Framework](https://github.com/nphamvn/home-assistant-web-client.git): Angular (migrated from version 13 to version 14)
+- Database: PostgresSQL for production. SQLite for local development
+- ORM Framework: Entity Framework Core 6
+- Cache: Redis
+- Message Broker: RabbitMQ
+- Containerization: Docker
+- Authentication/Authorization: JWT
+- Realtime communication: SignalR
+
+## Run with Docker
+1. Clone the repo
 ```
-heroku container:push web -a <app_name>
+git clone https://github.com/nphamvn/home-assistant-api.git
 ```
-Exmaple:
+2. Change directory 
 ```
-heroku container:push web -a nam-home-assistant
+cd home-assistant-api
 ```
-3. 
+3. Run with docker compose
 ```
-heroku container:release web -a <app_name>
+docker compose up -d
 ```
-Exmaple:
-heroku container:release web -a nam-home-assistant
