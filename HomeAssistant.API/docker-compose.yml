@@ -1,0 +1,16 @@
+version: '3.9'
+services:
+  app:
+    build: .
+    ports:
+      - "8000:80"
+    depends_on:
+      - db
+  db:
+    image: "postgres"
+    volumes:
+      - postgres_db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: "mysecretpassword"
+volumes:
+  postgres_db:
